@@ -1,0 +1,44 @@
+---
+description: Project folder structure and git workflow
+alwaysApply: true
+---
+
+# Project Structure
+
+```
+src/
+├── assets/           # CSS, fonts, images
+├── data/
+│   ├── constants/    # App-wide constants
+│   ├── enums/        # App-wide enums
+│   ├── hooks/        # React hooks
+│   ├── providers/    # Data providers (API, JSON)
+│   ├── services/     # HTTP client, utilities
+│   ├── stores/       # Business logic (Model)
+│   ├── types/        # Global TypeScript types
+│   └── utils/        # Framework-agnostic utilities
+├── views/
+│   ├── components/   # Reusable UI components
+│   ├── controllers/  # Shared ViewModels
+│   └── pages/        # Page components with controllers
+├── bindings.ts       # DI binding symbols
+├── dependencies.ts   # DI container configuration
+├── routes.tsx        # Application routes
+└── index.tsx         # Application entry point
+```
+
+# Git Workflow
+
+## Branches
+
+- `main` / `master` - Production branch
+- `uat` - Main development branch (auto-deploy)
+- `preprod` - Pre-release branch for hot-fixes
+
+## Commit Message Format
+
+For Jira integration:
+
+```
+F2P1-XXXXX #time Xh description
+```

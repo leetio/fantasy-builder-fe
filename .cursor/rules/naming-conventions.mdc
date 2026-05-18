@@ -1,0 +1,62 @@
+---
+description: File naming and TypeScript naming conventions
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# Naming Conventions
+
+## File Naming (snake_case for source code)
+
+- Pages: `page_name.page.tsx` with `page_name.controller.ts`
+- Components: `component_name.component.tsx` with optional `component_name.controller.ts`
+- Stores: `store_name.store.ts`
+- Providers: `provider_name.provider.ts`
+- Services: `service_name.service.ts`
+- Hooks: `hook_name.hook.ts`
+- Tests: `*.test.ts` or `*.test.tsx`
+
+## Asset Files (kebab-case)
+
+- CSS: `font-awesome.css`, `main-background.css`
+- Images: `main-background.jpg`, `logo-dark.svg`
+
+## TypeScript Naming
+
+### Variables and Functions
+- Use `camelCase` for variable and function names
+- Add `is` or `has` prefix for boolean variables: `isPlayer`, `hasPlayers`
+- Use `UPPER_SNAKE_CASE` for constants: `BYE_ROUNDS`, `API_URL`
+- Prefer `const` over `let`, avoid `var`
+
+### Classes
+- Use `PascalCase` for class names: `UserStore`, `AuthController`
+- Use `camelCase` for class members and methods
+
+### Interfaces
+- Use `PascalCase` with `I` prefix: `IUserStore`, `IAuthController`
+- Use semicolons (not commas) to separate fields
+
+```typescript
+interface IUserStore {
+  user: IUser;
+  isAuthorized: boolean;
+}
+```
+
+### Type Aliases
+- Use `PascalCase` with `T` prefix: `TUserResponse`, `TLoginPayload`
+
+```typescript
+type TUserResponse = { success: IUser };
+```
+
+### Enums
+- Use `PascalCase` for enum names
+- Use `UPPER_CASE` for enum members
+
+```typescript
+enum ModalType {
+  LOGIN,
+  REGISTRATION,
+}
+```

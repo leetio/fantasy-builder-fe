@@ -1,0 +1,53 @@
+---
+description: MVVM architecture pattern, dependency injection, and layer boundaries
+alwaysApply: true
+---
+
+# Architecture Pattern: MVVM (Model-View-ViewModel)
+
+This project follows the MVVM pattern with the following data flow:
+**View → ViewModel (Controller) → Store → Provider → Service**
+
+## Key Architectural Rules
+
+- Each View (Page/Component) must use only ONE corresponding ViewModel (Controller)
+- Any ViewModel can be used by many Views
+- ViewModels may use many Stores or Services, but must NOT use other ViewModels
+- Stores can only import Providers and other Stores
+- Providers can only import Services
+- Services can only import other Services
+
+## Dependency Injection
+
+- Use InversifyJS for dependency injection
+- All dependencies are registered in `src/dependencies.ts`
+- Binding symbols are defined in `src/bindings.ts`
+- Controllers must be decorated with `@injectable()`
+- Use `@inject(Bindings.XXX)` for injecting dependencies
+
+## Boundaries Rules (Import Restrictions)
+
+### Pages can import:
+- Components
+- Their own controller (same folder)
+- Shared controllers (from `views/controllers/`)
+- Hooks
+
+### Components can import:
+- Other Components
+- Their own controller (same folder)
+- Shared controllers (from `views/controllers/`)
+- Hooks
+
+### Controllers can import:
+- Stores only
+
+### Stores can import:
+- Providers
+- Other Stores
+
+### Providers can import:
+- Services only
+
+### Services can import:
+- Other Services only

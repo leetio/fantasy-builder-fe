@@ -1,0 +1,1 @@
+yarn run lint-staged --allow-empty && yarn npm-run-all -p lint typecheck

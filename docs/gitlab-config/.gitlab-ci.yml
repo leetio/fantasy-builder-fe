@@ -1,0 +1,93 @@
+include:
+  - project: 'geniussports/engage/f2p/common-gitlab-ci-templates'
+    ref: 'main'
+    file: 'frontend/templates/standard-workflow.yml'
+  - project: 'geniussports/engage/f2p/common-gitlab-ci-templates'
+    ref: 'main'
+    file: 'frontend/templates/jobs.yml'
+
+stages:
+  - test
+  - build
+
+##########################
+### Lint and test code ###
+##########################
+
+Lint, Typecheck, Test:
+  stage: test
+  extends: .install-packages-before
+  script:
+    - node tools/choose_app.mjs -p PROJECT_ONE
+    - !reference [.tasks, lint]
+  interruptible: true
+
+#############################
+### Project specific jobs ###
+#############################
+
+PROJECT ONE:
+  stage: build
+  trigger:
+    include: '.gitlab-ci-pipeline-part.yml'
+    strategy: depend
+  variables:
+    # The folder with the same name should be inside the "configs" folder.
+    # It should contain .env configs files for the project
+    PROJECT_NAME: 'PROJECT_ONE'
+    # The S3 folder is the folder where files will be uploaded on the bucket.
+    # It has to contain trailing slash. The field can be removed it projects are deploys into different buckets and should be uploaded to the root.
+    S3_BUCKET_DEPLOY_FOLDER: 'project_one_folder_name/'
+  rules:
+    - if: $CI_COMMIT_BRANCH == "uat"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'development'
+        SITE_URL: ''
+    - if: $CI_COMMIT_BRANCH == "preprod"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'preprod'
+        SITE_URL: ''
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'production'
+        SITE_URL: ''
+      when: manual
+
+PROJECT TWO:
+  stage: build
+  trigger:
+    include: '.gitlab-ci-pipeline-part.yml'
+    strategy: depend
+  variables:
+    # The folder with the same name should be inside the "configs" folder.
+    # It should contain .env configs files for the project
+    PROJECT_NAME: 'PROJECT_TWO'
+    # The S3 folder is the folder where files will be uploaded on the bucket.
+    # It has to contain trailing slash. The field can be removed it projects are deploys into different buckets and should be uploaded to the root.
+    S3_BUCKET_DEPLOY_FOLDER: 'project_two_folder_name/'
+  rules:
+    - if: $CI_COMMIT_BRANCH == "uat"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'development'
+        SITE_URL: ''
+    - if: $CI_COMMIT_BRANCH == "preprod"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'preprod'
+        SITE_URL: ''
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      variables:
+        AWS_S3_BUCKET: ''
+        CDN_DISTRIBUTION_ID: ''
+        ENV_FILE: 'production'
+        SITE_URL: ''
+      when: manual

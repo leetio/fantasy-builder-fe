@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+  <head>
+    <meta charset="utf-8" />
+
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+
+    <link rel="dns-prefetch" href="%VITE_JSON_URL%" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="%VITE_META_ROBOT%" />
+    <meta name="theme-color" content="#000000" />
+
+    <meta name="description" content="%VITE_DESCRIPTION%"/>
+
+    <meta property="og:title" content="%VITE_NAME%" />
+    <meta property="og:description" content="%VITE_DESCRIPTION%" />
+    <meta property="og:url" content="/" />
+    <meta property="og:image" content="%BASE_URL%social_share.jpg" />
+    <meta name="twitter:title" content="%VITE_NAME%" />
+    <meta name="twitter:description" content="%VITE_DESCRIPTION%" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="%BASE_URL%social_share.jpg" />
+
+    <% if (VITE_TWITTER_CREATOR) { %>
+    <meta name="twitter:creator" content="%VITE_TWITTER_CREATOR%" />
+    <% } %>
+
+    <% if (VITE_ZENDESK_KEY) { %>
+    <!-- Start of Zendesk Widget script -->
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=%VITE_ZENDESK_KEY%"> </script>
+
+    <script type="text/javascript">
+      zE(function() {
+        // Hide by default
+        zE.hide();
+      });
+    </script>
+    <!-- End of Zendesk Widget script -->
+    <% } %>
+
+    <% if (VITE_FACEBOOK_APP_ID) { %>
+    <link rel="dns-prefetch" href="//connect.facebook.net" />
+    <link rel="dns-prefetch" href="//www.facebook.com" />
+
+    <script>
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: '%VITE_FACEBOOK_APP_ID%',
+          autoLogAppEvents : true,
+          xfbml            : true,
+          version          : 'v15.0'
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <% } %>
+
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="/manifest.json" />
+    <title>%VITE_NAME%</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+{
+	"src/**/*.{tsx,ts}": "prettier . --write --ignore-unknown"
+}

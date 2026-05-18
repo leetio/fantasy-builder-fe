@@ -1,0 +1,52 @@
+---
+description: Import rules and restrictions for TypeScript files
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# Import Rules
+
+## Absolute Imports Only
+
+- Use absolute imports, NOT relative imports
+- Paths are configured via tsconfig.json
+
+```typescript
+// Bad
+import { Foo } from '../../components/Foo';
+import { Bar } from './Bar';
+
+// Good
+import { Foo } from 'views/components/foo/foo.component';
+import { Bar } from 'views/components/bar/bar.component';
+```
+
+## Type Imports
+
+- Always use `import type` for type-only imports
+
+```typescript
+import type { IUserStore } from 'data/stores/user/user.store';
+import { observer } from 'mobx-react';
+```
+
+## Lazy Loading for Pages
+
+```typescript
+const Home = lazy(retryFailLoad(() => import('views/pages/home/home.page')));
+```
+
+## Explicit Imports
+
+- Import specific functions/components, not entire modules
+
+```typescript
+// Bad
+import * as _ from 'lodash';
+
+// Good
+import { get, map } from 'lodash-es';
+```
+
+## No Duplicate Imports
+
+- Each module should be imported only once per file

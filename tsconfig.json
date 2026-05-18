@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "paths": {
+      "*": ["./src/*"]
+    },
+    "types": ["reflect-metadata", "vite/client", "vite-plugin-svgr/client"],
+    // https://mobx.js.org/installation.html#use-spec-compliant-transpilation-for-class-properties
+    "useDefineForClassFields": true,
+    // https://mobx.js.org/enabling-decorators.html#typescript
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "react-jsx",
+    "emitDecoratorMetadata": true,
+  },
+  "include": [
+    "src",
+    "vite.config.mts"
+  ]
+}

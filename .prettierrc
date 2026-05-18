@@ -1,0 +1,10 @@
+{
+  "parser": "typescript",
+  "trailingComma": "es5",
+  "tabWidth": 4,
+  "useTabs": true,
+  "bracketSpacing": false,
+  "bracketSameLine": true,
+  "htmlWhitespaceSensitivity": "ignore",
+  "printWidth": 100
+}

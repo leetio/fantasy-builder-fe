@@ -1,0 +1,4 @@
+include:
+  - project: 'geniussports/engage/f2p/common-gitlab-ci-templates'
+    ref: 'main'
+    file: 'frontend/react/.gitlab-ci.yml'

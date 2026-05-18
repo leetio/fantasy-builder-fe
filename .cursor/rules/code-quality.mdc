@@ -1,0 +1,30 @@
+---
+description: Code quality rules, complexity limits, and formatting standards
+alwaysApply: true
+---
+
+# Code Quality Rules
+
+## Complexity
+
+- Maximum cyclomatic complexity: 7 (35 for .tsx files)
+- Cognitive complexity is enforced via SonarJS
+
+## Console Statements
+
+- Only `console.warn`, `console.error`, `console.info` are allowed
+- `console.log` is prohibited
+
+## Null vs Undefined
+
+- Prefer `undefined` over `null`
+- `undefined` = missing and not declared
+- `null` = missing but declared (use only when part of API)
+
+## Formatting
+
+- Use Prettier for code formatting
+- Use tabs for indentation (not spaces)
+- Use single quotes for JS/TS strings
+- Use double quotes for JSX/HTML attributes
+- Always use semicolons

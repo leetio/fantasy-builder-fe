@@ -1,0 +1,55 @@
+---
+description: React functional components and MobX integration guidelines
+globs: ["**/*.tsx"]
+---
+
+# React Guidelines
+
+## Functional Components
+
+- Mark all functional components with `React.FC` interface
+- Use functional components, avoid class-based components
+- Keep components under 100 lines of code
+- Split large components into smaller chunks
+
+```typescript
+const MyComponent: React.FC = () => (
+  <div>Content</div>
+);
+
+interface IMyComponentProps {
+  title: string;
+}
+
+const MyComponent: React.FC<IMyComponentProps> = ({ title }) => (
+  <div>{title}</div>
+);
+```
+
+## MobX Integration
+
+- Wrap reactive components with `observer` from `mobx-react`
+- Use `useViewController` hook to access controllers
+- Add `makeAutoObservable(this)` in controller constructors
+
+```typescript
+import { observer } from "mobx-react";
+import { useViewController } from "data/hooks";
+
+export const MyPage: React.FC = observer(() => {
+  const { data } = useViewController<IMyController>(Bindings.MyController);
+  return <div>{data}</div>;
+});
+```
+
+## Fragments
+
+- Use `<Fragment>` instead of `<>` shortcut
+
+```typescript
+// Bad
+<>{children}</>
+
+// Good
+<Fragment>{children}</Fragment>
+```
