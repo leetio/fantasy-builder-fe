@@ -1,0 +1,26 @@
+# Development Dockerfile with hot reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+
+# Copy source
+COPY . .
+
+# Build argument for project selection
+ARG VITE_PROJECT
+ENV VITE_PROJECT=${VITE_PROJECT}
+
+# Copy project-specific env files
+RUN if [ -n "$VITE_PROJECT" ] && [ -d "configs/$VITE_PROJECT" ]; then \
+		cp -r configs/$VITE_PROJECT/env/.env* . 2>/dev/null || true; \
+		cp configs/$VITE_PROJECT/index.html . 2>/dev/null || true; \
+		cp -r configs/$VITE_PROJECT/public/* public/ 2>/dev/null || true; \
+	fi
+
+EXPOSE 8080
+
+CMD ["npm", "run", "start"]

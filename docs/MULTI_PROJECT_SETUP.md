@@ -183,7 +183,24 @@ node tools/choose_app.mjs -p PROJECT_NAME
 node tools/choose_app.mjs --help
 ```
 
-## Future: GitHub Actions CI/CD
+## Docker Support
+
+The multi-project setup is fully supported in Docker. See [`DOCKER.md`](./DOCKER.md) for details.
+
+Quick example:
+
+```bash
+# Build for specific project
+docker build --build-arg VITE_PROJECT=LOCAL_FANTASY -t fantasy-fe:latest .
+
+# Or use docker-compose
+docker-compose build
+docker-compose up -d
+```
+
+The Dockerfile automatically copies env files and assets from `configs/${VITE_PROJECT}/` during build.
+
+## GitHub Actions CI/CD
 
 When implementing CI/CD with GitHub Actions, you can:
 

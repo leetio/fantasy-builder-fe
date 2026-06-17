@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  fantasy-builder-fe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Change this to match your project name in configs/
+        VITE_PROJECT: LOCAL_FANTASY
+    image: fantasy-builder-fe:latest
+    container_name: fantasy-builder-fe
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    # Optional: mount nginx logs to host
+    # volumes:
+    #   - ./logs/nginx:/var/log/nginx
+
+  # Development service with hot reload
+  fantasy-builder-fe-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        VITE_PROJECT: LOCAL_FANTASY
+    image: fantasy-builder-fe:dev
+    container_name: fantasy-builder-fe-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run start
+    restart: unless-stopped
+    profiles:
+      - dev

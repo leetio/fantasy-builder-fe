@@ -1,3 +1,6 @@
 *.*
 !src/**/*.ts
 !src/**/*.tsx
+
+Dockerfile
+Dockerfile.*
