@@ -62,6 +62,15 @@ export default tseslint.config({
 					// category can be one of the following values: components, pages, controllers
 					capture: ["category", "name"],
 				},
+				{
+					type: "Override",
+					// Per-project DI override module + override classes.
+					// e.g. configs/LOCAL_FANTASY/src/overrides.module.ts
+					//      configs/LOCAL_FANTASY/src/overrides/leagues.store.ts
+					pattern: ["configs/*/src/overrides.module.ts", "configs/*/src/overrides/**/*.ts"],
+					mode: "file",
+					capture: ["project", "name"],
+				},
 			],
 			"import/resolver": {
 				typescript: {
@@ -139,6 +148,20 @@ export default tseslint.config({
 								"Service",
 							],
 							message: "The service is allowed to import only other services.",
+						},
+						{
+							from: "Override",
+							// Override files extend any base layer (Store/Controller/Provider/Service)
+							// and may rebind them via the DI container, so they need access to
+							// all the same dependencies the layers they extend can use.
+							allow: [
+								"Store",
+								"Provider",
+								"Service",
+								"Controller",
+								"Override",
+							],
+							message: "An override is allowed to import only base stores, providers, services, controllers, or other overrides.",
 						},
 					],
 				},

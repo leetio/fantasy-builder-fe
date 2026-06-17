@@ -1,71 +1,316 @@
-# Downstream Pipelines with Project-specific Configurations
+# Multi-Project Configuration Setup
 
-This documentation provides step-by-step instructions on how to set up a GitLab pipeline configuration that utilizes downstream pipelines for individual projects. The configuration allows for splitting the build processes and deploying the projects to different S3 buckets or the same bucket but different folders.
+This documentation explains how to configure the codebase to support multiple projects with different environment configurations, assets, and settings. This setup allows you to work on different projects locally by selecting which project configuration to use during development.
 
-## Setup steps
+## Architecture Overview
 
-1. **Rename Files**
-   - Remove `.gitlab-ci.yml` from the root.
-   - Copy the files `docs/gitlab-config/.gitlab-ci.yml` and `docs/gitlab-config/.gitlab-ci-pipeline-part.yml` to the project's root folder.
-   - In order to properly run tests, each project requires environment configuration files (`.env`). Therefore, it's necessary to execute the configuration selection script before the test phase.
-        ```
-        Lint, Typecheck, Test:
-            stage: test
-            extends: .install-packages-before
-            script:
-            - node tools/choose_app.mjs -p PROJECT_ONE
-            - !reference [.tasks, lint]
-            interruptible: true
-        ```
-     `PROJECT_ONE` should be replaced with the name of the directory containing the environment configuration files for the corresponding project. (`.gitlab-ci.yml` file) 
-   
-     If all projects need to be tested (i.e., not just one specific project), then this stage should be moved to the `.gitlab-ci-pipeline-part.yml` file, so that it can be included dynamically for each project in the pipeline. Don't forget to remove `test` stage from `stages:` section:
-        ```
-        stages:
-          - build
-        ```
+The multi-project setup uses a `configs/` folder structure where each project has its own isolated configuration:
 
-2. **Configure Variables**
-   - Open the `.gitlab-ci.yml` file and update the following variables according to your project's requirements:
-      - `PROJECT_NAME`: The name of your project. It should be equal to a folder name in the `configs` folder. More below.
-      - `S3_BUCKET_DEPLOY_FOLDER`: The folder in the S3 bucket where you want to deploy the project.
-      - `AWS_S3_BUCKET`: The name of your AWS S3 bucket.
-      - `CDN_DISTRIBUTION_ID`: The ID of the CDN distribution associated with your project.
-      - `SITE_URL`: The URL of your project's website.
-   - Additionally, update the pipeline names "_PROJECT ONE_" and "_PROJECT TWO_" to reflect the names of your specific projects.
+```
+configs/
+├── PROJECT_ONE/
+│   ├── env/
+│   │   ├── .env
+│   │   ├── .env.development
+│   │   ├── .env.preprod
+│   │   └── .env.production
+│   ├── index.html (optional, if project-specific HTML needed)
+│   └── public/ (optional, if project-specific assets needed)
+├── PROJECT_TWO/
+│   └── ... (same structure)
+```
 
-3. **Create Project-specific Configuration Folders**
-   - In the root directory of your repository, create a `configs` folder.
-   - For each project, create a folder inside the `configs` folder with the name matching the `PROJECT_NAME` variable specified in the `.gitlab-ci.yml` file.
-   - Inside each project folder, copy and paste the respective `.env` configuration files from the repository's root directory.
-   - Once the files are copied, remove the original `.env` files from the repository's root directory.
-   - Make sure that each project's folder under `configs` contains all the required `.env` configuration files.
+## Project Structure Requirements
 
-4. **Update `.gitignore`**
-   - Open the `.gitignore` file in your repository and add the following lines to ignore the project-specific `.env` configuration files:
-     ```
-     .env
-     .env.development
-     .env.preprod
-     .env.production
-     ```
-   - This prevents conflicts during merges, as the configuration files will be copied from the `configs` folder during the development process.
+### Required Structure for Each Project
 
-5. **Update the `start` Script in `package.json`**
-   - Open the `package.json` file in your repository and locate the `"start"` script.
-   - Update the script to include the following line instead of the existing command:
-     ```json
-     "start": "node tools/choose_app.mjs && yarn vite",
-     ```
-   - This modification enables you to select the project and environment you want to work with locally.
+Each project folder under `configs/` must follow this structure:
 
-### Verify and Monitor the Pipelines
+1. **env/** folder (required)
+	- Contains all environment-specific `.env` files
+	- Required files:
+		- `.env` - Base environment variables
+		- `.env.development` - Development environment
+		- `.env.preprod` - Pre-production environment
+		- `.env.production` - Production environment
 
-From now on, whenever a push event occurs in your repository, GitLab will trigger the pipeline.
+2. **index.html** (optional)
+	- Project-specific HTML template
+	- Only needed if the project requires different HTML structure, meta tags, or scripts
+	- If not provided, the default `index.html` from root will be used
 
-You can monitor the progress and status of the pipelines by navigating to the CI/CD section of your repository in GitLab. Here, you can view the test stage and individual downstream pipelines for each project.
+3. **public/** folder (optional)
+	- Project-specific static assets (favicons, images, manifest.json, etc.)
+	- Only needed if the project has different branding or static assets
+	- If not provided, the default `public/` folder from root will be used
 
-Pipelines for the `uat` and `preprod` environments will run automatically. For the production environment, only the test stage will run automatically, while downstream pipelines for each project need to be triggered manually.
+## Setup Steps
 
-Make sure to review the pipelines' output and status to ensure that each project is built and deployed correctly.
+### 1. Create Project Configuration Folders
+
+For each project you want to support:
+
+```bash
+# Create project folder structure
+mkdir -p configs/PROJECT_NAME/env
+mkdir -p configs/PROJECT_NAME/public
+
+# If project needs custom HTML
+touch configs/PROJECT_NAME/index.html
+```
+
+### 2. Configure Environment Variables
+
+Copy environment files to each project's `env/` folder:
+
+```bash
+# Example for PROJECT_ONE
+cp .env configs/PROJECT_ONE/env/.env
+cp .env.development configs/PROJECT_ONE/env/.env.development
+cp .env.preprod configs/PROJECT_ONE/env/.env.preprod
+cp .env.production configs/PROJECT_ONE/env/.env.production
+```
+
+Then customize the environment variables for each project.
+
+### 3. Add Project-Specific Assets (Optional)
+
+If your project needs different assets:
+
+```bash
+# Copy and customize assets
+cp -r public/ configs/PROJECT_NAME/public/
+# Customize favicon, manifest.json, images, etc.
+```
+
+### 4. Update `.gitignore`
+
+Ensure the following lines are in your `.gitignore`:
+
+```gitignore
+# Multi-project: env files copied from configs/
+.env
+.env.development
+.env.preprod
+.env.production
+```
+
+These files are generated by the `choose_app.mjs` tool and should not be committed to the repository.
+
+### 5. Update the `start` Script in `package.json`
+
+Update your start script to use the project selector:
+
+```json
+{
+	"scripts": {
+		"start": "node tools/choose_app.mjs && yarn vite"
+	}
+}
+```
+
+## Local Development Workflow
+
+### Starting Development
+
+1. Run the start command:
+	```bash
+	yarn start
+	```
+
+2. The `choose_app.mjs` tool will:
+	- Scan the `configs/` folder for available projects
+	- Present an interactive selection prompt
+	- Copy selected project's files to root:
+		- `.env*` files from `configs/PROJECT_NAME/env/` → root
+		- `index.html` (if exists) from `configs/PROJECT_NAME/` → root
+		- `public/` folder (if exists) from `configs/PROJECT_NAME/` → root
+	- Start the Vite dev server
+
+3. Work on your selected project with its specific configuration
+
+### Switching Projects
+
+Simply stop the dev server and run `yarn start` again to select a different project.
+
+### Command-Line Project Selection
+
+Skip the interactive prompt by specifying the project directly:
+
+```bash
+node tools/choose_app.mjs -p PROJECT_NAME && yarn vite
+```
+
+## Adding a New Project
+
+1. Create the project folder structure:
+	```bash
+	mkdir -p configs/NEW_PROJECT/env
+	```
+
+2. Add environment configuration files:
+	```bash
+	cd configs/NEW_PROJECT/env
+	touch .env .env.development .env.preprod .env.production
+	```
+
+3. Configure your environment variables in each `.env` file
+
+4. (Optional) Add project-specific `index.html` or `public/` assets
+
+5. Run `yarn start` and select your new project
+
+## Tool: choose_app.mjs
+
+The `tools/choose_app.mjs` script handles project selection and file copying.
+
+**Features:**
+- Interactive project selection
+- Command-line project specification with `-p` flag
+- Automatic cleanup of previous project files
+- Copies environment files from `env/` subfolder
+- Copies optional `index.html` and `public/` assets
+
+**Usage:**
+```bash
+# Interactive selection
+node tools/choose_app.mjs
+
+# Direct selection
+node tools/choose_app.mjs -p PROJECT_NAME
+
+# Help
+node tools/choose_app.mjs --help
+```
+
+## Future: GitHub Actions CI/CD
+
+When implementing CI/CD with GitHub Actions, you can:
+
+### Matrix Builds
+
+Use matrix strategy to build multiple projects:
+
+```yaml
+# .github/workflows/build.yml (example for future use)
+jobs:
+	build:
+		strategy:
+			matrix:
+				project: [PROJECT_ONE, PROJECT_TWO, PROJECT_THREE]
+		steps:
+			- name: Setup project config
+				run: node tools/choose_app.mjs -p ${{ matrix.project }}
+			- name: Build
+				run: yarn build
+```
+
+### Project-Specific Deployments
+
+Configure deployment targets per project using GitHub Secrets and environment variables.
+
+### Branch-Based Workflows
+
+- `main` branch → production deployments
+- `preprod` branch → pre-production deployments
+- `uat` branch → development deployments
+
+## Best Practices
+
+1. **Never commit generated files**: Root `.env*` files are generated by the tool
+2. **Keep configs isolated**: Each project should have completely independent configuration
+3. **Document project-specific requirements**: Add README in each project folder if needed
+4. **Use consistent naming**: Project folder names should be uppercase with underscores (e.g., `PROJECT_ONE`)
+5. **Test all projects**: When making shared code changes, test with multiple project configurations
+
+## Troubleshooting
+
+**Problem:** "Please create at least one app!" message
+
+**Solution:** Create at least one project folder under `configs/` with the required structure
+
+**Problem:** Environment variables not loading
+
+**Solution:** Ensure `.env` files are in the `env/` subfolder, not directly in the project folder
+
+**Problem:** Assets not displaying correctly
+
+**Solution:** Check that `public/` folder is copied correctly from the project config folder
+
+## Per-Project Logic Overrides
+
+In addition to env/assets, each project can ship its own DI overrides to extend or replace base classes (stores, controllers, providers, services) without forking `src/`.
+
+### How It Works
+
+1. Each project owns a `src/overrides.module.ts` file under its config folder that exports a `ContainerModule` named `projectOverrides`.
+2. At startup, `src/index.tsx` collects every `configs/*/src/overrides.module.ts` via `import.meta.glob` (eager) and loads the one whose project matches the `VITE_PROJECT` env var.
+3. Override classes live next to it under `configs/<P>/src/overrides/` and `extend` the base class they replace, keeping all logic typed against the existing `I*` interface.
+
+### File Layout
+
+```
+configs/PROJECT_NAME/
+├── env/
+├── public/
+└── src/
+    ├── overrides.module.ts          # registers rebinds
+    └── overrides/
+        ├── leagues.store.ts         # extends LeaguesStore
+        └── league.controller.ts     # extends LeagueController
+```
+
+### 1. Declare the Env Var
+
+Add to `configs/<P>/env/.env`:
+
+```env
+VITE_PROJECT=PROJECT_NAME
+```
+
+(Must match the folder name. Without it, no overrides are loaded.)
+
+### 2. Write an Override Class
+
+```ts
+// configs/PROJECT_NAME/src/overrides/leagues.store.ts
+import {injectable} from "inversify";
+import {LeaguesStore} from "data/stores/leagues/leagues.store";
+import type {ILeagueCodePayload} from "data/providers/leagues_api/leagues.api.provider";
+
+@injectable()
+export class ProjectLeaguesStore extends LeaguesStore {
+	override async joinToLeague(params: ILeagueCodePayload): Promise<void> {
+		// project-specific behavior
+		await super.joinToLeague(params);
+	}
+}
+```
+
+### 3. Register the Rebind
+
+```ts
+// configs/PROJECT_NAME/src/overrides.module.ts
+import {ContainerModule} from "inversify";
+import {Bindings} from "bindings";
+import {ProjectLeaguesStore} from "./overrides/leagues.store";
+
+export const projectOverrides = new ContainerModule(({rebind}) => {
+	rebind(Bindings.LeaguesStore).to(ProjectLeaguesStore).inSingletonScope();
+});
+```
+
+### Boundary Rules
+
+The `Override` element (see `eslint.config.mjs`) may import: `Store`, `Provider`, `Service`, `Controller`, `Override`. Other layers cannot import overrides — projects extend base code, never the reverse.
+
+### Tooling
+
+- `tsconfig.json` includes `configs/*/src` so overrides are typechecked.
+- `npm run lint` covers `configs/*/src` in addition to `src/`.
+- No symlinks, no build-time codegen — `import.meta.glob` discovers projects at build time.
+
+### When NOT to Use an Override
+
+For small, well-known variation points (feature flags, scoring rules, theme policies) prefer injecting a strategy interface (`IPolicy`) into the base store instead of subclassing. Reserve overrides for cases where a whole method or behavior needs to diverge.
 

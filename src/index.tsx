@@ -13,6 +13,7 @@ import {
 } from "@sentry/react";
 import {RouterProvider} from "react-router-dom";
 import {createRoot} from "react-dom/client";
+import type {ContainerModule} from "inversify";
 import {DIContainer, controllers, providers, services, stores} from "dependencies";
 import {InjectionProvider} from "views/components/injection_provider/injection_provider.component";
 import {StyledEngineProvider} from "@mui/material/styles";
@@ -67,6 +68,17 @@ if (!root) {
 }
 
 await DIContainer.load(services, providers, stores, controllers);
+
+const overrideModules = import.meta.glob<{projectOverrides?: ContainerModule}>(
+	"../configs/*/src/overrides.module.ts",
+	{eager: true}
+);
+const projectKey = `../configs/${import.meta.env.VITE_PROJECT}/src/overrides.module.ts`;
+const projectModule = overrideModules[projectKey];
+
+if (projectModule?.projectOverrides) {
+	await DIContainer.load(projectModule.projectOverrides);
+}
 
 const router = SecretGateController.IS_SECRET_PASSED ? mainRouter : restrictedRouter;
 

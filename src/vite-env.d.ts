@@ -21,6 +21,7 @@ interface ImportMetaEnv {
 	readonly VITE_SENTRY_ENV: string;
 	readonly VITE_SENTRY_APPLICATION_KEY: string;
 	readonly VITE_SENTRY_PROJECT_NAME: string;
+	readonly VITE_PROJECT: string;
 }
 
 interface ImportMeta {
