@@ -166,6 +166,14 @@ import {
 	type ITranslationsJsonProvider,
 	TranslationsJsonProvider,
 } from "data/providers/translations_json/translations_json.provider";
+import {
+	type ISuperRugbyTeamApiProvider,
+	SuperRugbyTeamApiProvider,
+} from "data/providers/sport/super-rugby/team_api.provider";
+import {
+	type ISuperRugbyTeamStore,
+	SuperRugbyTeamStore,
+} from "data/stores/sport/super-rugby/team.store";
 
 export const DIContainer = new Container();
 
@@ -203,6 +211,9 @@ export const providers = new ContainerModule(({bind}) => {
 	bind<ICountriesJsonProvider>(Bindings.CountriesJsonProvider).to(CountriesJsonProvider);
 	bind<IChecksumsJsonProvider>(Bindings.ChecksumsJsonProvider).to(ChecksumsJsonProvider);
 	bind<ITranslationsJsonProvider>(Bindings.TranslationsJsonProvider).to(TranslationsJsonProvider);
+	bind<ISuperRugbyTeamApiProvider>(Bindings.SuperRugbyTeamApiProvider).to(
+		SuperRugbyTeamApiProvider
+	);
 });
 
 export const stores = new ContainerModule(({bind}) => {
@@ -220,6 +231,9 @@ export const stores = new ContainerModule(({bind}) => {
 	bind<ILeaguesStore>(Bindings.LeaguesStore).to(LeaguesStore).inSingletonScope();
 	bind<IModalsStore>(Bindings.ModalsStore).to(ModalsStore).inSingletonScope();
 	bind<ILeaderboardsStore>(Bindings.LeaderboardsStore).to(LeaderboardsStore).inSingletonScope();
+	bind<ISuperRugbyTeamStore>(Bindings.SuperRugbyTeamStore)
+		.to(SuperRugbyTeamStore)
+		.inSingletonScope();
 });
 
 export const controllers = new ContainerModule(({bind}) => {

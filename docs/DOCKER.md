@@ -115,26 +115,35 @@ docker run -d \
 
 ## Multi-Project Support
 
-The Docker setup integrates with the multi-project configuration system:
+The Docker setup integrates with the multi-project configuration system, supporting both flat and CLIENT/GAME hierarchy:
 
 ### Project Selection
 
-Specify the project at build time:
+Specify the project path at build time:
 
 ```bash
+# Flat structure
 docker build --build-arg VITE_PROJECT=LOCAL_FANTASY -t fantasy-fe:local .
-docker build --build-arg VITE_PROJECT=PROJECT_TWO -t fantasy-fe:project2 .
+
+# CLIENT/GAME hierarchy
+docker build --build-arg VITE_PROJECT=FANTASY_PLATFORM/fantasy-super-rugby -t fantasy-fe:super-rugby .
+docker build --build-arg VITE_PROJECT=FANTASY_PLATFORM/fantasy-premier-league -t fantasy-fe:epl .
 ```
 
 ### How It Works
 
-1. The `VITE_PROJECT` build arg specifies which config folder to use
+1. The `VITE_PROJECT` build arg specifies the path to the config folder
+   - Flat: `LOCAL_FANTASY` → reads from `configs/LOCAL_FANTASY/`
+   - Nested: `FANTASY_PLATFORM/fantasy-super-rugby` → reads from `configs/FANTASY_PLATFORM/fantasy-super-rugby/`
+
 2. During build, the Dockerfile copies files from `configs/${VITE_PROJECT}/`:
    - Environment files from `env/` → root
    - `index.html` (if exists) → root
    - Assets from `public/` → root `public/`
-3. The build runs with the project-specific configuration
-4. Per-project overrides in `configs/${VITE_PROJECT}/src/` are included automatically
+
+3. The build runs with the project/game-specific configuration
+
+4. Per-project/game overrides in `src/overrides.module.ts` are loaded automatically at runtime
 
 ### Environment Variables
 

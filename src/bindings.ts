@@ -56,4 +56,6 @@ export const Bindings = Object.freeze({
 	DeleteAccountController: Symbol("DeleteAccountController"),
 	ModalController: Symbol("ModalController"),
 	TranslationsJsonProvider: Symbol("TranslationsJsonProvider"),
+	SuperRugbyTeamApiProvider: Symbol("SuperRugbyTeamApiProvider"),
+	SuperRugbyTeamStore: Symbol("SuperRugbyTeamStore"),
 });

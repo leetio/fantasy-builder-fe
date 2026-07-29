@@ -10,11 +10,11 @@ RUN npm ci --no-audit --no-fund
 # Copy source
 COPY . .
 
-# Build argument for project selection
+# Build argument for project selection (flat or nested CLIENT/GAME)
 ARG VITE_PROJECT
 ENV VITE_PROJECT=${VITE_PROJECT}
 
-# Copy project-specific env files
+# Copy project-specific env files (supports nested paths)
 RUN if [ -n "$VITE_PROJECT" ] && [ -d "configs/$VITE_PROJECT" ]; then \
 		cp -r configs/$VITE_PROJECT/env/.env* . 2>/dev/null || true; \
 		cp configs/$VITE_PROJECT/index.html . 2>/dev/null || true; \

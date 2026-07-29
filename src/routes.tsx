@@ -7,7 +7,18 @@ import {retryFailLoad} from "data/utils";
 import {NotAuthOnlyRoute, PrivateRoute} from "views/components/route";
 import {BASE_URL} from "data/constants";
 
-const Home = lazy(retryFailLoad(() => import("views/pages/landing/landing.page")));
+// Check for project-specific landing page override
+const projectLandingPages = import.meta.glob<{default: React.ComponentType}>(
+	"../configs/*/src/overrides/landing.page.tsx",
+	{eager: false}
+);
+
+const projectKey = `../configs/${import.meta.env.VITE_PROJECT}/src/overrides/landing.page.tsx`;
+const hasCustomLanding = projectKey in projectLandingPages;
+
+const Home = hasCustomLanding
+	? lazy(retryFailLoad(() => projectLandingPages[projectKey]()))
+	: lazy(retryFailLoad(() => import("views/pages/landing/landing.page")));
 const ResetPassword = lazy(
 	retryFailLoad(() => import("views/pages/reset_password/reset_password.page"))
 );

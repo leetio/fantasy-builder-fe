@@ -15,12 +15,14 @@ RUN npm ci --no-audit --no-fund
 # Copy source code and configs
 COPY . .
 
-# Build argument for project selection (e.g., LOCAL_FANTASY)
+# Build argument for project selection
+# Supports both flat (e.g., LOCAL_FANTASY) and nested (e.g., FANTASY_PLATFORM/fantasy-super-rugby)
 ARG VITE_PROJECT
 ENV VITE_PROJECT=${VITE_PROJECT}
 
 # Copy project-specific env files and assets
 # The choose_app.mjs tool would normally do this, but we do it manually in Docker
+# Works with: configs/LOCAL_FANTASY or configs/FANTASY_PLATFORM/fantasy-super-rugby
 RUN if [ -n "$VITE_PROJECT" ] && [ -d "configs/$VITE_PROJECT" ]; then \
 		cp -r configs/$VITE_PROJECT/env/.env* . 2>/dev/null || true; \
 		cp configs/$VITE_PROJECT/index.html . 2>/dev/null || true; \

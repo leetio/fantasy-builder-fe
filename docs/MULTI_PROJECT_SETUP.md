@@ -4,21 +4,53 @@ This documentation explains how to configure the codebase to support multiple pr
 
 ## Architecture Overview
 
-The multi-project setup uses a `configs/` folder structure where each project has its own isolated configuration:
+The multi-project setup supports two organizational patterns:
+
+### Pattern 1: Flat Structure (Legacy)
+
+Single-level projects for simple use cases:
 
 ```
 configs/
-├── PROJECT_ONE/
+├── LOCAL_FANTASY/
 │   ├── env/
-│   │   ├── .env
-│   │   ├── .env.development
-│   │   ├── .env.preprod
-│   │   └── .env.production
-│   ├── index.html (optional, if project-specific HTML needed)
-│   └── public/ (optional, if project-specific assets needed)
-├── PROJECT_TWO/
-│   └── ... (same structure)
+│   ├── public/
+│   └── src/
+└── OTHER_PROJECT/
+    └── ...
 ```
+
+### Pattern 2: CLIENT/GAME Hierarchy (Recommended)
+
+Multi-level structure where one client can have multiple games:
+
+```
+configs/
+├── FANTASY_PLATFORM/                    # Client
+│   ├── fantasy-super-rugby/            # Game 1
+│   │   ├── env/
+│   │   │   ├── .env
+│   │   │   ├── .env.development
+│   │   │   ├── .env.preprod
+│   │   │   └── .env.production
+│   │   ├── public/
+│   │   ├── src/
+│   │   │   └── overrides.module.ts
+│   │   └── README.md
+│   ├── fantasy-soccer/                 # Game 2
+│   │   └── ... (same structure)
+│   └── fantasy-basketball/             # Game 3
+│       └── ...
+└── LOCAL_FANTASY/                       # Flat project (still supported)
+    └── ...
+```
+
+**Benefits of CLIENT/GAME hierarchy:**
+- One client (brand) can manage multiple games
+- Shared infrastructure and tooling
+- Game-specific configurations and overrides
+- Clear organizational structure
+- Scalable to many games per client
 
 ## Project Structure Requirements
 
@@ -48,30 +80,54 @@ Each project folder under `configs/` must follow this structure:
 
 ### 1. Create Project Configuration Folders
 
-For each project you want to support:
+Choose your organizational pattern:
+
+#### Flat Structure (Simple Projects)
 
 ```bash
 # Create project folder structure
-mkdir -p configs/PROJECT_NAME/env
-mkdir -p configs/PROJECT_NAME/public
+mkdir -p configs/PROJECT_NAME/{env,public,src}
+```
 
-# If project needs custom HTML
-touch configs/PROJECT_NAME/index.html
+#### CLIENT/GAME Hierarchy (Recommended for Multi-Game Clients)
+
+```bash
+# Create client and game folders
+mkdir -p configs/CLIENT_NAME/GAME_NAME/{env,public,src}
+
+# Example: Fantasy Platform with Super Rugby game
+mkdir -p configs/FANTASY_PLATFORM/fantasy-super-rugby/{env,public,src}
 ```
 
 ### 2. Configure Environment Variables
 
-Copy environment files to each project's `env/` folder:
+Create environment files in the project's `env/` folder:
+
+#### Flat Structure
 
 ```bash
-# Example for PROJECT_ONE
-cp .env configs/PROJECT_ONE/env/.env
-cp .env.development configs/PROJECT_ONE/env/.env.development
-cp .env.preprod configs/PROJECT_ONE/env/.env.preprod
-cp .env.production configs/PROJECT_ONE/env/.env.production
+# Create env files
+touch configs/PROJECT_NAME/env/.env{,.development,.preprod,.production}
 ```
 
-Then customize the environment variables for each project.
+#### CLIENT/GAME Hierarchy
+
+```bash
+# Create env files for a game
+touch configs/CLIENT_NAME/GAME_NAME/env/.env{,.development,.preprod,.production}
+```
+
+**Important:** Each project must set `VITE_PROJECT` to its full path:
+
+```env
+# Flat: configs/LOCAL_FANTASY/env/.env
+VITE_PROJECT=LOCAL_FANTASY
+
+# Nested: configs/FANTASY_PLATFORM/fantasy-super-rugby/env/.env
+VITE_PROJECT=FANTASY_PLATFORM/fantasy-super-rugby
+```
+
+Then customize other environment variables (API URLs, game slug, etc.) for each project/game.
 
 ### 3. Add Project-Specific Assets (Optional)
 
@@ -115,50 +171,82 @@ Update your start script to use the project selector:
 
 1. Run the start command:
 	```bash
-	yarn start
+	npm start
 	```
 
 2. The `choose_app.mjs` tool will:
-	- Scan the `configs/` folder for available projects
-	- Present an interactive selection prompt
+	- Scan the `configs/` folder for available projects (both flat and nested)
+	- Present an interactive selection prompt showing all discovered projects/games
 	- Copy selected project's files to root:
-		- `.env*` files from `configs/PROJECT_NAME/env/` → root
-		- `index.html` (if exists) from `configs/PROJECT_NAME/` → root
-		- `public/` folder (if exists) from `configs/PROJECT_NAME/` → root
+		- `.env*` files from `env/` → root
+		- `index.html` (if exists) → root
+		- `public/` assets (if exist) → root `public/`
 	- Start the Vite dev server
 
 3. Work on your selected project with its specific configuration
 
 ### Switching Projects
 
-Simply stop the dev server and run `yarn start` again to select a different project.
+Simply stop the dev server and run `npm start` again to select a different project/game.
 
 ### Command-Line Project Selection
 
-Skip the interactive prompt by specifying the project directly:
+Skip the interactive prompt by specifying the project path directly:
 
 ```bash
-node tools/choose_app.mjs -p PROJECT_NAME && yarn vite
+# Flat structure
+node tools/choose_app.mjs -p LOCAL_FANTASY && npm run start
+
+# CLIENT/GAME structure
+node tools/choose_app.mjs -p FANTASY_PLATFORM/fantasy-super-rugby && npm run start
 ```
 
 ## Adding a New Project
 
-1. Create the project folder structure:
+### Adding a Flat Project
+
+1. Create the project structure:
 	```bash
-	mkdir -p configs/NEW_PROJECT/env
+	mkdir -p configs/NEW_PROJECT/{env,public,src}
 	```
 
-2. Add environment configuration files:
+2. Add environment files:
 	```bash
-	cd configs/NEW_PROJECT/env
-	touch .env .env.development .env.preprod .env.production
+	touch configs/NEW_PROJECT/env/.env{,.development,.preprod,.production}
 	```
 
-3. Configure your environment variables in each `.env` file
+3. Set `VITE_PROJECT=NEW_PROJECT` in all env files
 
-4. (Optional) Add project-specific `index.html` or `public/` assets
+4. Add assets to `public/` and logic overrides to `src/`
 
-5. Run `yarn start` and select your new project
+5. Run `npm start` and select your new project
+
+### Adding a New Game to Existing Client
+
+1. Create the game structure:
+	```bash
+	mkdir -p configs/EXISTING_CLIENT/new-game/{env,public,src}
+	```
+
+2. Add environment files:
+	```bash
+	touch configs/EXISTING_CLIENT/new-game/env/.env{,.development,.preprod,.production}
+	```
+
+3. Set `VITE_PROJECT=EXISTING_CLIENT/new-game` in all env files
+
+4. Configure game-specific variables (e.g., `VITE_GAME_SLUG=new-game`)
+
+5. Run `npm start` and select the new game
+
+### Adding a New Client with Games
+
+1. Create the full hierarchy:
+	```bash
+	mkdir -p configs/NEW_CLIENT/{game-one,game-two}/{env,public,src}
+	```
+
+2. Configure each game independently following the steps above
 
 ## Tool: choose_app.mjs
 
@@ -185,20 +273,22 @@ node tools/choose_app.mjs --help
 
 ## Docker Support
 
-The multi-project setup is fully supported in Docker. See [`DOCKER.md`](./DOCKER.md) for details.
+The multi-project setup is fully supported in Docker for both flat and nested structures. See [`DOCKER.md`](./DOCKER.md) for details.
 
-Quick example:
+Quick examples:
 
 ```bash
-# Build for specific project
-docker build --build-arg VITE_PROJECT=LOCAL_FANTASY -t fantasy-fe:latest .
+# Flat structure
+docker build --build-arg VITE_PROJECT=LOCAL_FANTASY -t fantasy-fe:local .
 
-# Or use docker-compose
-docker-compose build
-docker-compose up -d
+# CLIENT/GAME structure
+docker build --build-arg VITE_PROJECT=FANTASY_PLATFORM/fantasy-super-rugby -t fantasy-fe:super-rugby .
+
+# Using docker-compose (see docker-compose.yml for examples)
+docker-compose --profile super-rugby up
 ```
 
-The Dockerfile automatically copies env files and assets from `configs/${VITE_PROJECT}/` during build.
+The Dockerfile automatically copies env files and assets from `configs/${VITE_PROJECT}/` during build, supporting both path formats.
 
 ## GitHub Actions CI/CD
 
@@ -232,13 +322,48 @@ Configure deployment targets per project using GitHub Secrets and environment va
 - `preprod` branch → pre-production deployments
 - `uat` branch → development deployments
 
+## CLIENT/GAME Pattern Benefits
+
+The nested CLIENT/GAME hierarchy is recommended for organizations managing multiple games:
+
+### When to Use CLIENT/GAME
+
+- **Multiple games under one brand** - e.g., FANTASY_PLATFORM with Super Rugby, Soccer, Basketball
+- **Shared infrastructure** - Same API endpoints, CDN, authentication across games
+- **Per-game customization** - Different assets, rules, scoring systems per game
+- **Scalability** - Easy to add new games without cluttering the config root
+
+### When to Use Flat Structure
+
+- **Single game/project** - No need for client grouping
+- **Legacy compatibility** - Existing projects don't need migration
+- **Prototypes** - Quick one-off projects
+
+### Real-World Example
+
+```
+configs/
+├── FANTASY_PLATFORM/              # Client: Genius Sports Fantasy Platform
+│   ├── fantasy-super-rugby/      # Game: Super Rugby
+│   ├── fantasy-premier-league/   # Game: English Premier League
+│   ├── fantasy-nba/              # Game: NBA Basketball
+│   └── fantasy-nfl/              # Game: NFL Football
+├── BETTING_PLATFORM/             # Client: Different product line
+│   ├── bet-builder/
+│   └── live-odds/
+└── LOCAL_FANTASY/                 # Flat: Local development
+```
+
 ## Best Practices
 
 1. **Never commit generated files**: Root `.env*` files are generated by the tool
-2. **Keep configs isolated**: Each project should have completely independent configuration
-3. **Document project-specific requirements**: Add README in each project folder if needed
-4. **Use consistent naming**: Project folder names should be uppercase with underscores (e.g., `PROJECT_ONE`)
-5. **Test all projects**: When making shared code changes, test with multiple project configurations
+2. **Keep configs isolated**: Each project/game should have completely independent configuration
+3. **Document game-specific requirements**: Add README.md in each game folder
+4. **Naming conventions**:
+   - Clients: UPPERCASE_WITH_UNDERSCORES (e.g., `FANTASY_PLATFORM`)
+   - Games: lowercase-with-dashes (e.g., `fantasy-super-rugby`)
+5. **Test all projects**: When making shared code changes, test with multiple configurations
+6. **Use CLIENT/GAME for scale**: If you expect 3+ related games, start with nested structure
 
 ## Troubleshooting
 
