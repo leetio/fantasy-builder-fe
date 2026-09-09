@@ -7,10 +7,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json yarn.lock ./
 
 # Install dependencies
-RUN npm ci --no-audit --no-fund
+RUN yarn install --frozen-lockfile --non-interactive
 
 # Copy source code and configs
 COPY . .
@@ -32,7 +32,7 @@ RUN if [ -n "$VITE_PROJECT" ] && [ -d "configs/$VITE_PROJECT" ]; then \
 	fi
 
 # Build the application
-RUN npm run build
+RUN yarn build
 
 # Stage 2: Production
 FROM nginx:1.27-alpine

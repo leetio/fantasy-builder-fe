@@ -25,4 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# this project uses yarn (see packageManager in package.json)
+package-lock.json
+
 .cursor/implement-runs
