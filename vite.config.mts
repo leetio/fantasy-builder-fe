@@ -15,7 +15,7 @@ const loggerInfo = logger.info;
 const HOST_REGEXP = /https:\/\/(?:\x1b\[[0-9;]*m)*[a-zA-Z0-9.\-]+(?:\x1b\[[0-9;]*m)*:(?:\x1b\[[0-9;]*m)*\d+(?:\x1b\[[0-9;]*m)*\//g;
 
 const LOCAL_DOMAIN = "frontend.dev.loc";
-const LOCAL_PORT = 3000;
+const LOCAL_PORT = 8000;
 
 
 /** @type {import("vite").ViteUserConfig} */

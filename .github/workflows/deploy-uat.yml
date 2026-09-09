@@ -1,0 +1,68 @@
+name: Deploy to UAT
+
+on:
+  push:
+    branches:
+      - uat
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run type check
+        run: npm run typecheck
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+        env:
+          VITE_ENV: uat
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync dist/ s3://${{ vars.S3_BUCKET }}/uat/ \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "index.html" && \
+          aws s3 cp dist/index.html s3://${{ vars.S3_BUCKET }}/uat/index.html \
+            --cache-control "public, max-age=3600" \
+            --content-type "text/html"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployed to S3: s3://${{ vars.S3_BUCKET }}/uat/"
+          echo "✅ CloudFront invalidation triggered"
